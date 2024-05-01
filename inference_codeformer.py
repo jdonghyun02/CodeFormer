@@ -3,6 +3,9 @@ import cv2
 import argparse
 import glob
 import torch
+import numpy as np
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
 from torchvision.transforms.functional import normalize
 from basicsr.utils import imwrite, img2tensor, tensor2img
 from basicsr.utils.download_util import load_file_from_url
@@ -15,6 +18,7 @@ from basicsr.utils.registry import ARCH_REGISTRY
 pretrain_model_url = {
     'restoration': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth',
 }
+
 
 def set_realesrgan():
     from basicsr.archs.rrdbnet_arch import RRDBNet
@@ -160,6 +164,7 @@ if __name__ == '__main__':
         save_ext='png',
         use_parse=True,
         device=device)
+    
 
     # -------------------- start to processing ---------------------
     for i, img_path in enumerate(input_img_list):
@@ -171,6 +176,7 @@ if __name__ == '__main__':
             basename, ext = os.path.splitext(img_name)
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+            original_img = img
         else: # for video processing
             basename = str(i).zfill(6)
             img_name = f'{video_name}_{basename}' if input_video else basename
@@ -270,5 +276,10 @@ if __name__ == '__main__':
         for f in video_frames:
             vidwriter.write_frame(f)
         vidwriter.close()
-
+    
     print(f'\nAll results are saved in {result_root}')
+    psnr_val = psnr(original_img, restored_img)
+    ssim_val = ssim(original_img, restored_img, multichannel=True)
+    # Print the PSNR and SSIM values
+    print(f'PSNR: {psnr_val}')
+    print(f'SSIM: {ssim_val}')
