@@ -278,8 +278,11 @@ if __name__ == '__main__':
         vidwriter.close()
     
     print(f'\nAll results are saved in {result_root}')
+    if original_img.shape[:2] != restored_img.shape[:2]:
+        # Resize the restored image to match the dimensions of the original image
+        restored_img = cv2.resize(restored_img, (original_img.shape[1], original_img.shape[0]))
+
     psnr_val = psnr(original_img, restored_img)
-    ssim_val = ssim(original_img, restored_img, multichannel=True)
-    # Print the PSNR and SSIM values
+    # Calculate the smaller side of the images
+    
     print(f'PSNR: {psnr_val}')
-    print(f'SSIM: {ssim_val}')
